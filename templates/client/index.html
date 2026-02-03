@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant — Commander</title>
+    <link rel="stylesheet" href="/restaurant/static/css/client.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🍽️ Restaurant</h1>
+                <div class="table-info">
+                    <label>Numéro de table:</label>
+                    <input type="text" id="table-number" placeholder="ex: A12" maxlength="10">
+                </div>
+            </div>
+        </header>
+
+        <!-- Menu -->
+        <main class="menu-container">
+            <div id="menu-loading" class="loading">
+                <div class="spinner"></div>
+                <p>Chargement du menu...</p>
+            </div>
+            
+            <div id="menu-content" class="hidden">
+                <div id="categories"></div>
+            </div>
+            
+            <div id="menu-error" class="error hidden"></div>
+        </main>
+
+        <!-- Cart -->
+        <div class="cart-container">
+            <div class="cart-header" onclick="toggleCart()">
+                <span>🛒 Panier</span>
+                <span id="cart-count">0</span>
+                <span id="cart-total">0.00€</span>
+                <span id="cart-arrow">▼</span>
+            </div>
+            <div id="cart-items" class="cart-items hidden"></div>
+            <button id="checkout-btn" class="btn-primary" onclick="checkout()" disabled>
+                Commander (0.00€)
+            </button>
+        </div>
+    </div>
+
+    <!-- Order Modal -->
+    <div id="order-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>✅ Commande passée !</h2>
+            <p>Votre commande <strong>#<span id="order-number"></span></strong> a été enregistrée.</p>
+            <p><strong>Numéro de table:</strong> <span id="order-table"></span></p>
+            <p><strong>Total:</strong> <span id="order-total"></span></p>
+            <p style="margin-top: 20px; color: #666; font-size: 0.9rem;">
+                Le personnel viendra vous apporter votre commande.
+            </p>
+            <button class="btn-primary" onclick="closeOrderModal()">Fermer</button>
+        </div>
+    </div>
+
+    <script src="/restaurant/static/js/client.js"></script>
+</body>
+</html>
