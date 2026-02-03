@@ -223,16 +223,22 @@ def api_admin_orders():
     result = []
     for o in orders:
         items = []
-        for oi in o.order_items:
+        # CORRECTION ICI : o.items au lieu de o.order_items
+        for oi in o.items:  # <-- CHANGÉ ICI
             mi = MenuItem.query.get(oi.menu_item_id)
             if mi:
-                items.append({'name': mi.name, 'quantity': oi.quantity, 'unit_price': oi.unit_price})
+                items.append({
+                    'name': mi.name,
+                    'quantity': oi.quantity,
+                    'unit_price': oi.unit_price,
+                    'total': oi.quantity * oi.unit_price
+                })
         result.append({
             'id': o.id,
             'table_number': o.table_number,
             'status': o.status,
-            'created_at': o.created_at.isoformat(),
-            'updated_at': o.updated_at.isoformat(),
+            'created_at': o.created_at.isoformat() if o.created_at else datetime.utcnow().isoformat(),
+            'updated_at': o.updated_at.isoformat() if o.updated_at else datetime.utcnow().isoformat(),
             'total': o.total,
             'items': items
         })
