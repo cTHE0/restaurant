@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard — Admin Restaurant</title>
+    <title>Dashboard — Admin</title>
+    <link rel="stylesheet" href="/restaurant/static/css/style.css">
     <link rel="stylesheet" href="/restaurant/static/css/admin.css">
 </head>
 <body>
     <div class="admin-app">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <h2>🍽️ Admin</h2>
@@ -21,113 +21,36 @@
             </nav>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <header class="main-header">
                 <h1>Dashboard</h1>
-                <div class="user-info">
-                    <span id="admin-username"></span>
-                </div>
+                <a href="/" style="color: #2563eb; text-decoration: none; font-weight: 600;">← CV</a>
             </header>
 
-            <!-- Stats Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon">📦</div>
                     <div class="stat-info">
                         <div class="stat-label">Total Commandes</div>
-                        <div class="stat-value" id="total-orders">-</div>
+                        <div class="stat-value">{{ total_orders }}</div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">⏳</div>
                     <div class="stat-info">
                         <div class="stat-label">En attente</div>
-                        <div class="stat-value" id="pending-orders">-</div>
+                        <div class="stat-value">{{ pending_orders }}</div>
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">📅</div>
                     <div class="stat-info">
                         <div class="stat-label">Aujourd'hui</div>
-                        <div class="stat-value" id="today-orders">-</div>
+                        <div class="stat-value">{{ today_orders }}</div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Charts -->
-            <div class="charts-section">
-                <div class="chart-card">
-                    <h3>📊 Commandes par statut</h3>
-                    <canvas id="status-chart" width="400" height="200"></canvas>
                 </div>
             </div>
         </main>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
-    <script>
-        // Load stats
-        async function loadStats() {
-            const stats = {
-                total_orders: {{ total_orders }},
-                pending_orders: {{ pending_orders }},
-                today_orders: {{ today_orders }}
-            };
-
-            document.getElementById('total-orders').textContent = stats.total_orders;
-            document.getElementById('pending-orders').textContent = stats.pending_orders;
-            document.getElementById('today-orders').textContent = stats.today_orders;
-        }
-
-        // Load status chart
-        async function loadStatusChart() {
-            try {
-                const response = await fetch('/api/admin/orders/stats');
-                const data = await response.json();
-
-                const ctx = document.getElementById('status-chart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['⏳ En attente', '🍳 Préparation', '✅ Prêt', '🍽️ Livré', '❌ Annulé'],
-                        datasets: [{
-                            data: [
-                                data.by_status.pending || 0,
-                                data.by_status.preparing || 0,
-                                data.by_status.ready || 0,
-                                data.by_status.delivered || 0,
-                                data.by_status.cancelled || 0
-                            ],
-                            backgroundColor: [
-                                '#f59e0b',
-                                '#3b82f6',
-                                '#10b981',
-                                '#8b5cf6',
-                                '#ef4444'
-                            ]
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
-                            }
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error('Erreur:', error);
-            }
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            loadStats();
-            loadStatusChart();
-        });
-    </script>
 </body>
 </html>

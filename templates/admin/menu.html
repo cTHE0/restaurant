@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Menus — Admin</title>
+    <link rel="stylesheet" href="/restaurant/static/css/style.css">
+    <link rel="stylesheet" href="/restaurant/static/css/admin.css">
+    <style>
+        .menu-editor { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; }
+        .menu-editor h2 { margin-bottom: 20px; color: #2563eb; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #2563eb; }
+        .form-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-secondary:hover { background: #475569; }
+        .categories-list, .items-list { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .category-item, .menu-item-row { padding: 15px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .category-item:last-child, .menu-item-row:last-child { border-bottom: none; }
+        .category-name { font-weight: 600; font-size: 1.1rem; color: #2563eb; }
+        .item-name { font-weight: 600; color: #1e293b; }
+        .item-price { color: #2563eb; font-weight: 700; margin-left: 15px; }
+        .item-actions { display: flex; gap: 8px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+        .tab { padding: 12px 24px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 600; color: #64748b; }
+        .tab.active { border-bottom-color: #2563eb; color: #2563eb; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="admin-app">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>🍽️ Admin</h2></div>
+            <nav class="sidebar-nav">
+                <a href="/restaurant/admin/" class="nav-item">📊 Dashboard</a>
+                <a href="/restaurant/admin/menus" class="nav-item active">📋 Menus</a>
+                <a href="/restaurant/admin/orders" class="nav-item">📦 Commandes</a>
+                <a href="/restaurant/admin/logout" class="nav-item logout">🚪 Déconnexion</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header"><h1>Gestion des Menus</h1></header>
+
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('categories')">Catégories</div>
+                <div class="tab" onclick="switchTab('items')">Items</div>
+            </div>
+
+            <div id="categories-tab" class="tab-content active">
+                <div class="menu-editor">
+                    <h2>➕ Ajouter une catégorie</h2>
+                    <form id="category-form">
+                        <div class="form-group">
+                            <label for="category-name">Nom *</label>
+                            <input type="text" id="category-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="category-description">Description</label>
+                            <textarea id="category-description" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="category-order">Ordre d'affichage</label>
+                            <input type="number" id="category-order" value="0">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">➕ Ajouter</button>
+                            <button type="button" class="btn btn-secondary" onclick="resetCategoryForm()">🔄 Réinitialiser</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="categories-list">
+                    <h3>Catégories existantes</h3>
+                    <div id="categories-list"></div>
+                </div>
+            </div>
+
+            <div id="items-tab" class="tab-content">
+                <div class="menu-editor">
+                    <h2>➕ Ajouter un item</h2>
+                    <form id="item-form">
+                        <div class="form-group">
+                            <label for="item-name">Nom *</label>
+                            <input type="text" id="item-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="item-description">Description</label>
+                            <textarea id="item-description" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="item-price">Prix (€) *</label>
+                            <input type="number" id="item-price" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="item-category">Catégorie *</label>
+                            <select id="item-category" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="item-image">Image</label>
+                            <input type="file" id="item-image" accept="image/*">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="item-available" checked>
+                                Disponible
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label for="item-order">Ordre d'affichage</label>
+                            <input type="number" id="item-order" value="0">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">➕ Ajouter</button>
+                            <button type="button" class="btn btn-secondary" onclick="resetItemForm()">🔄 Réinitialiser</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="items-list">
+                    <h3>Items existants</h3>
+                    <div id="items-list"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/restaurant/static/js/api.js"></script>
+    <script src="/restaurant/static/js/admin.js"></script>
+</body>
+</html>

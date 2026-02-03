@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commandes — Admin</title>
+    <link rel="stylesheet" href="/restaurant/static/css/style.css">
+    <link rel="stylesheet" href="/restaurant/static/css/admin.css">
+    <style>
+        .filters { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; display: flex; gap: 15px; align-items: center; }
+        .filter-group { display: flex; flex-direction: column; gap: 5px; }
+        .filter-group label { font-size: 0.9rem; color: #64748b; }
+        .filter-group select, .filter-group button { padding: 8px 15px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; cursor: pointer; }
+        .orders-list { display: grid; gap: 15px; }
+        .order-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #2563eb; }
+        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0; }
+        .order-id { font-weight: 700; font-size: 1.2rem; color: #1e293b; }
+        .order-table { background: #2563eb; color: white; padding: 4px 12px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; }
+        .order-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+        .order-item:last-child { border-bottom: none; }
+        .order-item-name { font-weight: 600; color: #1e293b; }
+        .order-item-qty { background: #e2e8f0; color: #475569; padding: 2px 8px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; }
+        .order-total { font-weight: 700; color: #2563eb; font-size: 1.2rem; margin-top: 10px; }
+        .order-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .status-badge { padding: 6px 15px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; }
+        .status-badge.pending { background: #fef3c7; color: #92400e; }
+        .status-badge.preparing { background: #dbeafe; color: #1e40af; }
+        .status-badge.ready { background: #dcfce7; color: #15803d; }
+        .status-badge.delivered { background: #ede9fe; color: #5b21b6; }
+        .status-badge.cancelled { background: #fee2e2; color: #b91c1c; }
+        .btn { padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn-sm { padding: 6px 12px; font-size: 0.9rem; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-info { background: #3b82f6; color: white; }
+        .btn-info:hover { background: #2563eb; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .auto-refresh { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="admin-app">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>🍽️ Admin</h2></div>
+            <nav class="sidebar-nav">
+                <a href="/restaurant/admin/" class="nav-item">📊 Dashboard</a>
+                <a href="/restaurant/admin/menus" class="nav-item">📋 Menus</a>
+                <a href="/restaurant/admin/orders" class="nav-item active">📦 Commandes</a>
+                <a href="/restaurant/admin/logout" class="nav-item logout">🚪 Déconnexion</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="main-header"><h1>📦 Commandes</h1></header>
+
+            <div class="auto-refresh">
+                <label><input type="checkbox" id="auto-refresh" checked> Actualisation automatique (5s)</label>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <label>Statut</label>
+                    <select id="status-filter" onchange="loadOrders()">
+                        <option value="all">Tous</option>
+                        <option value="pending">⏳ En attente</option>
+                        <option value="preparing">🍳 Préparation</option>
+                        <option value="ready">✅ Prêt</option>
+                        <option value="delivered">🍽️ Livré</option>
+                        <option value="cancelled">❌ Annulé</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <button onclick="loadOrders()">🔄 Actualiser</button>
+                </div>
+            </div>
+
+            <div class="orders-list" id="orders-list">
+                <div style="text-align:center;padding:40px;color:#64748b">
+                    <div style="border:4px solid #e2e8f0;border-radius:50%;width:40px;height:40px;margin:0 auto 15px;animation:spin 1s linear infinite"></div>
+                    <p>Chargement des commandes...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/restaurant/static/js/api.js"></script>
+    <script>
+        let autoRefreshInterval = null;
+
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            autoRefreshInterval = setInterval(() => {
+                if (document.getElementById('auto-refresh').checked) {
+                    loadOrders();
+                }
+            }, 5000);
+        }
+
+        async function loadOrders() {
+            try {
+                const status = document.getElementById('status-filter').value;
+                const response = await fetch(`/restaurant/api/admin/orders?status=${status}`);
+                const orders = await response.json();
+                renderOrders(orders);
+            } catch (error) {
+                console.error('Erreur:', error);
+                document.getElementById('orders-list').innerHTML = `
+                    <div style="text-align:center;padding:40px;color:#ef4444">
+                        <p>❌ Erreur lors du chargement</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderOrders(orders) {
+            const container = document.getElementById('orders-list');
+            if (orders.length === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:40px;color:#64748b"><p>📭 Aucune commande</p></div>';
+                return;
+            }
+            
+            const statusBadges = {
+                'pending': '⏳ En attente',
+                'preparing': '🍳 Préparation',
+                'ready': '✅ Prêt',
+                'delivered': '🍽️ Livré',
+                'cancelled': '❌ Annulé'
+            };
+            
+            const statusColors = {
+                'pending': 'pending',
+                'preparing': 'preparing',
+                'ready': 'ready',
+                'delivered': 'delivered',
+                'cancelled': 'cancelled'
+            };
+            
+            container.innerHTML = orders.map(order => `
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <div class="order-id">Commande #${order.id}</div>
+                            <div style="color:#64748b;font-size:0.9rem">📅 ${new Date(order.created_at).toLocaleString('fr-FR')}</div>
+                        </div>
+                        <div class="order-table">Table ${order.table_number}</div>
+                    </div>
+                    <div>
+                        ${order.items.map(item => `
+                            <div class="order-item">
+                                <div>
+                                    <span class="order-item-name">${item.name}</span>
+                                    <span style="margin-left:10px;color:#64748b;font-size:0.9rem">×</span>
+                                    <span style="color:#64748b;font-size:0.9rem">${item.quantity}</span>
+                                </div>
+                                <div>
+                                    <span class="order-item-qty">${(item.quantity * item.unit_price).toFixed(2)}€</span>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="order-total">Total: ${order.total.toFixed(2)}€</div>
+                    <div class="order-actions">
+                        <span class="status-badge ${statusColors[order.status]}">${statusBadges[order.status]}</span>
+                        ${order.status === 'pending' ? `<button class="btn btn-info btn-sm" onclick="updateStatus(${order.id}, 'preparing')">➡️ Préparation</button>` : ''}
+                        ${order.status === 'preparing' ? `<button class="btn btn-success btn-sm" onclick="updateStatus(${order.id}, 'ready')">✅ Prêt</button>` : ''}
+                        ${order.status === 'ready' ? `<button class="btn btn-warning btn-sm" onclick="updateStatus(${order.id}, 'delivered')">🍽️ Livré</button>` : ''}
+                        ${['pending', 'preparing'].includes(order.status) ? `<button class="btn btn-danger btn-sm" onclick="updateStatus(${order.id}, 'cancelled')">❌ Annuler</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function updateStatus(orderId, status) {
+            if (status === 'cancelled' && !confirm('Êtes-vous sûr de vouloir annuler cette commande ?')) return;
+            
+            try {
+                const response = await fetch(`/restaurant/api/admin/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                
+                if (response.ok) loadOrders();
+                else alert('Erreur lors de la mise à jour');
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('Erreur serveur');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadOrders();
+            startAutoRefresh();
+        });
+    </script>
+</body>
+</html>
