@@ -1,3 +1,6 @@
+# Flask et extensions
 Flask==3.0.0
 Flask-SQLAlchemy==3.1.1
 Werkzeug==3.0.1
+
+# Base de données (SQLite inclus dans Python)

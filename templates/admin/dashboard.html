@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard — Admin</title>
+    <title>Dashboard — Admin Restaurant</title>
     <link rel="stylesheet" href="/restaurant/static/css/style.css">
     <link rel="stylesheet" href="/restaurant/static/css/admin.css">
 </head>
@@ -17,15 +17,22 @@
                 <a href="/restaurant/admin/" class="nav-item active">📊 Dashboard</a>
                 <a href="/restaurant/admin/menus" class="nav-item">📋 Menus</a>
                 <a href="/restaurant/admin/orders" class="nav-item">📦 Commandes</a>
+                <a href="/restaurant/client/" class="nav-item">👁️ Vue Client</a>
                 <a href="/restaurant/admin/logout" class="nav-item logout">🚪 Déconnexion</a>
             </nav>
         </aside>
 
         <main class="main-content">
             <header class="main-header">
-                <h1>Dashboard</h1>
-                <a href="/" style="color: #2563eb; text-decoration: none; font-weight: 600;">← CV</a>
+                <h1>📊 Dashboard</h1>
+                <a href="/" style="color: #2563eb; text-decoration: none; font-weight: 600;">← Retour CV</a>
             </header>
+
+            {% if error %}
+            <div class="error" style="margin-bottom: 20px;">
+                ⚠️ Erreur: {{ error }}
+            </div>
+            {% endif %}
 
             <div class="stats-grid">
                 <div class="stat-card">
@@ -43,11 +50,47 @@
                     </div>
                 </div>
                 <div class="stat-card">
+                    <div class="stat-icon">🍳</div>
+                    <div class="stat-info">
+                        <div class="stat-label">En préparation</div>
+                        <div class="stat-value">{{ preparing_orders|default(0) }}</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info">
+                        <div class="stat-label">Prêtes</div>
+                        <div class="stat-value">{{ ready_orders|default(0) }}</div>
+                    </div>
+                </div>
+                <div class="stat-card">
                     <div class="stat-icon">📅</div>
                     <div class="stat-info">
                         <div class="stat-label">Aujourd'hui</div>
                         <div class="stat-value">{{ today_orders }}</div>
                     </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <div class="stat-label">CA du jour</div>
+                        <div class="stat-value">{{ today_revenue|default(0) }}€</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-top: 20px;">
+                <h3 style="color: #2563eb; margin-bottom: 15px;">🚀 Actions rapides</h3>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    <a href="/restaurant/admin/orders" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; background: #2563eb; color: white; text-decoration: none; border-radius: 10px; font-weight: 600; transition: all 0.2s;">
+                        📦 Voir les commandes
+                    </a>
+                    <a href="/restaurant/admin/menus" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; background: #10b981; color: white; text-decoration: none; border-radius: 10px; font-weight: 600; transition: all 0.2s;">
+                        📋 Gérer le menu
+                    </a>
+                    <a href="/restaurant/client/" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; background: #8b5cf6; color: white; text-decoration: none; border-radius: 10px; font-weight: 600; transition: all 0.2s;">
+                        👁️ Tester l'interface client
+                    </a>
                 </div>
             </div>
         </main>
