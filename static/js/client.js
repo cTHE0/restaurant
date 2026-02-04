@@ -151,7 +151,7 @@ class RestaurantClient {
                 document.getElementById('order-number').textContent = result.order_id;
                 document.getElementById('order-table').textContent = this.tableNumber;
                 document.getElementById('order-total').textContent = `${data.total.toFixed(2)}€`;
-                document.getElementById('order-modal').classList.remove('hidden');
+                document.getElementById('order-modal').classList.add('visible');
                 this.cart = [];
                 this.updateCart();
             } else {
@@ -164,7 +164,7 @@ class RestaurantClient {
     }
 
     closeOrderModal() {
-        document.getElementById('order-modal').classList.add('hidden');
+        document.getElementById('order-modal').classList.remove('visible');
     }
 }
 
